@@ -2,6 +2,7 @@
 const requestPromise = require('request-promise');
 const Promise = require('bluebird');
 const logger = require('./modules/logger')('request-promise-retry');
+const sleep = require('sleep');
 
 class rpRetry {
     static _rpRetry(options) {
@@ -9,6 +10,7 @@ class rpRetry {
           logger.info(`calling ${options.uri} with retry ${options.retry}`);
         }
         const tries = options.retry || 1;
+        const wait = options.wait || 0;
         delete options.retry;
         const fetchDataWithRetry = tryCount => {
             return requestPromise(options)
@@ -21,6 +23,7 @@ class rpRetry {
                 .catch(err => {
                     logger.info(`Encountered error ${err.message} for ${options.method} request to ${options.uri}, retry count ${tryCount}`);
                     tryCount -= 1;
+                    sleep.sleep(wait);
                     if (tryCount) {
                         return fetchDataWithRetry(tryCount);
                     }
